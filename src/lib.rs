@@ -1,7 +1,17 @@
+#![feature(lazy_cell)]
+#![feature(duration_constructors)]
+
 pub mod app;
+#[cfg(feature = "ssr")]
+pub mod db;
+#[cfg(feature = "ssr")]
+pub mod env;
 pub mod error_template;
 #[cfg(feature = "ssr")]
 pub mod fileserv;
+pub mod short;
+#[cfg(feature = "ssr")]
+pub mod state;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
