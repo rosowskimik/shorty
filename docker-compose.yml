@@ -1,0 +1,31 @@
+name: shorty
+
+services:
+  # frontend:
+  #   build: 
+  #     context: ./front
+  #     args:
+  #       API_BASE: http://fedora:8000
+  #   ports:
+  #     - 3000:80
+  #   depends_on:
+  #     backend:
+  #       condition: service_started
+  #
+  # backend:
+  #   build: ./back
+  #   environment:
+  #     APP_DB_ADDR: db:6379
+  #     APP_DB_PASS: ""
+  #     APP_PORT: 8000
+  #     APP_DOMAIN: fedora:8000
+  #   ports:
+  #     - 8000:8000
+  #   depends_on:
+  #     db:
+  #       condition: service_started
+
+  db:
+    image: redis:alpine
+    ports:
+      - 6379:6379
