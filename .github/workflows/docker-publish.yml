@@ -66,6 +66,7 @@ jobs:
 
       -
         name: Build & push front image
+        id: build-and-push
         uses: docker/build-push-action@v5
         with:
           context: .
