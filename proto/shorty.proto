@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.gprc.shorty";
+option java_outer_classname = "ShortyProto";
+
+package shorty;
+
+service Shorty {
+  rpc Shorten (UrlMessage) returns (SlugMessage) {}
+  rpc GetOriginal (SlugMessage) returns (UrlMessage) {}
+}
+
+message UrlMessage {
+  string url = 1;
+}
+
+message SlugMessage {
+  string slug = 1;
+}
