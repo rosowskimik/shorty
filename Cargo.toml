@@ -19,3 +19,16 @@ tonic-build = "0.11.0"
 tracing = "0.1"
 tracing-subscriber = "0.3.18"
 url = { version = "2.5.0", features = ["serde"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"
+
+# Defines a size-optimized profile for the WASM bundle in release mode
+[profile.wasm-release]
+inherits = "release"
+opt-level = 'z'
+lto = true
+codegen-units = 1
+panic = "abort"

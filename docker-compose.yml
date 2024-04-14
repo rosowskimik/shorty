@@ -7,9 +7,25 @@ services:
       dockerfile: Dockerfile.server
     image: ghcr.io/rosowskimik/shorty-server
     environment:
+      SERVER_BIND_IP: "::"
       SERVER_DATABASE: redis://db
     depends_on:
       db:
+        condition: service_started
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    image: ghcr.io/rosowskimik/shorty-client
+    environment:
+      CLIENT_PUBLIC_URL: http://localhost
+      CLIENT_GRPC_ENDPOINT: http://server:50001
+      LEPTOS_SITE_ADDR: "[::]:80"
+    ports:
+      - 80:80
+    depends_on:
+      server:
         condition: service_started
 
   db:

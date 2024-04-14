@@ -6,10 +6,117 @@ edition.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
-prost.workspace = true
-tokio.workspace = true
-tonic.workspace = true
+axum = { version = "0.7", features = ["macros"], optional = true }
+console_error_panic_hook = { version = "0.1.7", optional = true }
+http = "1.1.0"
+leptos = { version = "0.6", features = ["nightly"] }
+leptos_axum = { version = "0.6", optional = true }
+leptos_meta = { version = "0.6", features = ["nightly"] }
+leptos_router = { version = "0.6", features = ["nightly"] }
+serde = { version = "1.0.197", features = ["derive"] }
+thiserror = "1.0.58"
+tower = { version = "0.4.13", optional = true }
+tower-http = { version = "0.5.2", features = [
+  "compression-gzip",
+  "fs",
+
+  "timeout",
+], optional = true }
+wasm-bindgen = "=0.2.92"
+
+clap = { workspace = true, optional = true }
+eyre = { workspace = true, optional = true }
+prost = { workspace = true, optional = true }
+tokio = { workspace = true, features = ["signal"], optional = true }
+tonic = { workspace = true, optional = true }
+tracing = { workspace = true, optional = true }
+tracing-subscriber = { workspace = true, optional = true }
+url = { workspace = true, features = ["serde"] }
 
 [build-dependencies]
+tonic-build.workspace = true
+
+[features]
+hydrate = [
+  "dep:console_error_panic_hook",
+  "leptos/hydrate",
+  "leptos_meta/hydrate",
+  "leptos_router/hydrate",
+]
+ssr = [
+  "dep:axum",
+  "dep:clap",
+  "dep:eyre",
+  "dep:leptos_axum",
+  "dep:prost",
+  "dep:tokio",
+  "dep:tonic",
+  "dep:tower",
+  "dep:tower-http",
+  "dep:tracing",
+  "dep:tracing-subscriber",
+  "leptos/ssr",
+  "leptos_meta/ssr",
+  "leptos_router/ssr",
+]
+
+[package.metadata.leptos]
+# The name used by wasm-bindgen/cargo-leptos for the JS/WASM bundle. Defaults to the crate name
+output-name = "shorty"
+
+# The site root folder is where cargo-leptos generate all output. WARNING: all content of this folder will be erased on a rebuild. Use it in your server setup.
+site-root = "target/site"
+
+# The site-root relative folder where all compiled output (JS, WASM and CSS) is written
+# Defaults to pkg
+site-pkg-dir = "pkg"
+
+# [Optional] The source CSS file. If it ends with .sass or .scss then it will be compiled by dart-sass into CSS. The CSS is optimized by Lightning CSS before being written to <site-root>/<site-pkg>/app.css
+style-file = "style/main.scss"
+# Assets source dir. All files found here will be copied and synchronized to site-root.
+# The assets-dir cannot have a sub directory with the same name/path as site-pkg-dir.
+#
+# Optional. Env: LEPTOS_ASSETS_DIR.
+assets-dir = "public"
+
+# The IP and port (ex: 127.0.0.1:3000) where the server serves the content. Use it in your server setup.
+site-addr = "[::1]:3000"
+
+# The port to use for automatic reload monitoring
+reload-port = 3001
+
+#  The browserlist query used for optimizing the CSS.
+browserquery = "defaults"
+
+# The environment Leptos will run in, usually either "DEV" or "PROD"
+env = "DEV"
+
+# The features to use when compiling the bin target
+#
+# Optional. Can be over-ridden with the command line parameter --bin-features
+bin-features = ["ssr"]
+
+# If the --no-default-features flag should be used when compiling the bin target
+#
+# Optional. Defaults to false.
+bin-default-features = false
+
+# The features to use when compiling the lib target
+#
+# Optional. Can be over-ridden with the command line parameter --lib-features
+lib-features = ["hydrate"]
+
+# If the --no-default-features flag should be used when compiling the lib target
+#
+# Optional. Defaults to false.
+lib-default-features = false
+
+# The profile to use for the lib target when compiling for release
+#
+# Optional. Defaults to "release".
+lib-profile-release = "wasm-release"
 tonic-build.workspace = true
