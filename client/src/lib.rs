@@ -1,14 +1,13 @@
-#![feature(lazy_cell)]
-#![feature(duration_constructors)]
-
 pub mod app;
 #[cfg(feature = "ssr")]
-pub mod db;
-#[cfg(feature = "ssr")]
-pub mod env;
+pub mod args;
 pub mod error_template;
 #[cfg(feature = "ssr")]
 pub mod fileserv;
+#[cfg(feature = "ssr")]
+pub mod grpc {
+    tonic::include_proto!("shorty");
+}
 pub mod short;
 #[cfg(feature = "ssr")]
 pub mod state;

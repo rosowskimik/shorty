@@ -1,4 +1,7 @@
-use crate::{error_template::{AppError, ErrorTemplate}, short::ShortenUrl};
+use crate::{
+    error_template::{AppError, ErrorTemplate},
+    short::ShortenUrl,
+};
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
@@ -43,13 +46,15 @@ fn HomePage() -> impl IntoView {
 
     let is_err = move || value.with(|v| matches!(v, Some(Err(_))));
 
-    let short_url = move || value.with(|v| {
-        if let Some(resp) = v{
-            resp.clone().map(|short| short.to_string())
-        } else {
-            Ok(String::new())
-        }
-    });
+    let short_url = move || {
+        value.with(|v| {
+            if let Some(resp) = v {
+                resp.clone().map(|short| short.to_string())
+            } else {
+                Ok(String::new())
+            }
+        })
+    };
 
     view! {
         <h1>Url Shortener</h1>
@@ -81,7 +86,6 @@ fn HomePage() -> impl IntoView {
             </Show>
         </ErrorBoundary>
     }
-    
 }
 
 #[component]

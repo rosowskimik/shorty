@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1
+
+FROM rust:slim as build
+
+RUN apt update && \
+    apt install -qqy --no-install-recommends \
+        protobuf-compiler
+
+RUN cargo install cargo-leptos
+
+WORKDIR /build
+
+ADD --link . .
+
+WORKDIR /build/client
+RUN cargo leptos build --release
+
+# ===== Final =====
+FROM gcr.io/distroless/cc-debian12 as final
+
+WORKDIR /app
+
+COPY --from=build --link /build/target/release/client /app/
+COPY --from=build --link /build/target/site /app/site
+
+ENV LEPTOS_SITE_ADDR="[::]:80"
+ENV LEPTOS_SITE_ROOT="site"
+
+ENV CLIENT_PUBLIC_URL="http://localhost"
+ENV CLIENT_GRPC_ENDPOINT="http://[::1]:50001"
+ENV CLIENT_LOG="info"
+
+EXPOSE 80
+
+ENTRYPOINT ["/app/client"]
+

@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+
+# ===== Build =====
+FROM rust:slim as build
+
+RUN apt update && \
+    apt install -qqy --no-install-recommends \
+        protobuf-compiler
+
+WORKDIR /build
+
+ADD --link . .
+
+RUN cargo build --release --package server
+
+# ===== Final =====
+FROM gcr.io/distroless/cc-debian12 as final
+
+WORKDIR /app
+
+COPY --from=build --link /build/target/release/server /app/
+
+ENV SERVER_PORT="50001"
+ENV SERVER_BIND_IP="::1"
+ENV SERVER_DATABASE="redis://localhost"
+ENV SERVER_LOG="info"
+
+EXPOSE 50001
+
+ENTRYPOINT ["/app/server"]
