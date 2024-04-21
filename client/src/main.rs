@@ -12,7 +12,7 @@ mod ssr {
     use clap::Parser;
     use client::{
         app::*, args::Cli, fileserv::file_and_error_handler, grpc::shorty_client::ShortyClient,
-        short::ssr::short_url_handler, state::AppState,
+        short::ssr::short_url_handler, state::{AppState, self},
     };
     use eyre::Context;
     use leptos::*;
@@ -53,6 +53,27 @@ mod ssr {
         handler(request).await.into_response()
     }
 
+    async fn init_grpc(endpoint: String) -> eyre::Result<state::ShortyClient> {
+        const MAX_ATTEMPTS: usize = 5;
+
+        let mut attempt = 1;
+        loop {
+            match ShortyClient::connect(endpoint.clone())
+                .await {
+                    Err(e) => {
+                        if attempt < MAX_ATTEMPTS {
+                            debug!(endpoint, attempt, "Connecting to gRPC endpoint failed. Retrying...");
+                            attempt+=1;
+                            tokio::time::sleep(Duration::from_secs(15)).await;
+                        } else {
+                            return Err(e.into())
+                        }
+                    }
+                    Ok(client) => return Ok(client)
+                }
+        }
+    }
+
     async fn shutdown_signal() {
         let ctrl_c = async {
             signal::ctrl_c()
@@ -89,9 +110,7 @@ mod ssr {
         let routes = generate_route_list(App);
 
         trace!(endpoint = args.grpc, "Connecting to gRPC backend");
-        let client = ShortyClient::connect(args.grpc)
-            .await
-            .wrap_err("Failed to connect to gRPC backend")?;
+        let client = init_grpc(args.grpc).await.wrap_err("Failed to connect to gRPC backend")?;
 
         let app_state = AppState {
             leptos_options,

@@ -1,6 +1,7 @@
 .git/
 .github/
 .gitignore
+.kuber/
 target/
 README.md
 LICENSE
