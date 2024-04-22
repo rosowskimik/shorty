@@ -11,8 +11,13 @@ mod ssr {
     };
     use clap::Parser;
     use client::{
-        app::*, args::Cli, fileserv::file_and_error_handler, grpc::shorty_client::ShortyClient,
-        short::ssr::short_url_handler, state::{AppState, self},
+        app::*,
+        args::Cli,
+        fileserv::file_and_error_handler,
+        grpc::shorty_client::ShortyClient,
+        intercept::TokenInterceptor,
+        short::ssr::short_url_handler,
+        state::{self, AppState},
     };
     use eyre::Context;
     use leptos::*;
@@ -21,9 +26,11 @@ mod ssr {
         LeptosRoutes,
     };
     use tokio::{net::TcpListener, signal};
+    use tonic::transport::Endpoint;
     use tower::ServiceBuilder;
     use tower_http::{compression::CompressionLayer, timeout::TimeoutLayer};
-    use tracing::{debug, info, trace};
+    use tracing::{debug, info, Level};
+    use tracing_subscriber::{filter::Targets, prelude::*};
 
     async fn server_fn_handler(
         State(app_state): State<AppState>,
@@ -53,25 +60,34 @@ mod ssr {
         handler(request).await.into_response()
     }
 
-    async fn init_grpc(endpoint: String) -> eyre::Result<state::ShortyClient> {
+    async fn init_grpc(uri: String, token: Option<String>) -> eyre::Result<state::ShortyClient> {
         const MAX_ATTEMPTS: usize = 5;
 
+        let endpoint = Endpoint::from_shared(uri.clone()).wrap_err("Invalid gRPC URI")?;
+
         let mut attempt = 1;
-        loop {
-            match ShortyClient::connect(endpoint.clone())
-                .await {
-                    Err(e) => {
-                        if attempt < MAX_ATTEMPTS {
-                            debug!(endpoint, attempt, "Connecting to gRPC endpoint failed. Retrying...");
-                            attempt+=1;
-                            tokio::time::sleep(Duration::from_secs(15)).await;
-                        } else {
-                            return Err(e.into())
-                        }
+        let channel = loop {
+            match endpoint.connect().await {
+                Err(e) => {
+                    if attempt < MAX_ATTEMPTS {
+                        debug!(
+                            uri,
+                            attempt, "Connecting to gRPC endpoint failed. Retrying..."
+                        );
+                        attempt += 1;
+                        tokio::time::sleep(Duration::from_secs(15)).await;
+                    } else {
+                        return Err(e.into());
                     }
-                    Ok(client) => return Ok(client)
                 }
-        }
+                Ok(channel) => break channel,
+            }
+        };
+
+        Ok(ShortyClient::with_interceptor(
+            channel,
+            TokenInterceptor { token },
+        ))
     }
 
     async fn shutdown_signal() {
@@ -97,20 +113,35 @@ mod ssr {
             _ = terminate => {},
         };
 
-        tracing::info!("Received shutdown request");
+        info!("Received shutdown request");
+    }
+
+    fn setup_tracing(lvl: &Level) {
+        let filter = Targets::new()
+            // For tracing from app use requested level
+            .with_target("client", *lvl)
+            // For all other, use >error
+            .with_default(Level::ERROR);
+
+        tracing_subscriber::registry()
+            .with(tracing_subscriber::fmt::layer())
+            .with(filter)
+            .init();
     }
 
     pub async fn main() -> eyre::Result<()> {
         let args = Cli::parse();
-        tracing_subscriber::fmt().with_max_level(args.log).init();
+        setup_tracing(&args.log);
 
         let conf = get_configuration(None).await?;
         let leptos_options = conf.leptos_options;
         let addr = leptos_options.site_addr;
         let routes = generate_route_list(App);
 
-        trace!(endpoint = args.grpc, "Connecting to gRPC backend");
-        let client = init_grpc(args.grpc).await.wrap_err("Failed to connect to gRPC backend")?;
+        debug!(endpoint = args.grpc, "Connecting to gRPC backend");
+        let client = init_grpc(args.grpc, args.token)
+            .await
+            .wrap_err("Failed to connect to gRPC backend")?;
 
         let app_state = AppState {
             leptos_options,
@@ -118,7 +149,7 @@ mod ssr {
             short_base: args.url.join("/s/").wrap_err("Parsing base URL failed")?,
         };
 
-        debug!(?app_state);
+        debug!(leptos_options = ?app_state.leptos_options, short_base = app_state.short_base.to_string());
 
         // build our application with a route
         let app = Router::new()
