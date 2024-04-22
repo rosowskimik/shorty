@@ -30,6 +30,11 @@ spec:
             configMapKeyRef:
               name: server-config
               key: grpc-endpoint
+        - name: CLIENT_GRPC_TOKEN
+          valueFrom:
+            secretMapKeyRef:
+              name: server-secret
+              key: server-token
 ---
 apiVersion: v1
 kind: Service

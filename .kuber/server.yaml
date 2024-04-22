@@ -30,6 +30,11 @@ spec:
             configMapKeyRef:
               name: redis-config
               key: redis-url
+        - name: SERVER_TOKEN
+          valueFrom:
+            secretMapKeyRef:
+              name: server-secret
+              key: server-token
 ---
 apiVersion: v1
 kind: Service
