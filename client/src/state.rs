@@ -1,11 +1,11 @@
 use axum::extract::FromRef;
 use leptos::LeptosOptions;
-use tonic::transport::Channel;
+use tonic::{service::interceptor::InterceptedService, transport::Channel};
 use url::Url;
 
-use crate::grpc::shorty_client;
+use crate::{grpc::shorty_client, intercept::TokenInterceptor};
 
-pub type ShortyClient = shorty_client::ShortyClient<Channel>;
+pub type ShortyClient = shorty_client::ShortyClient<InterceptedService<Channel, TokenInterceptor>>;
 
 #[derive(FromRef, Clone, Debug)]
 pub struct AppState {

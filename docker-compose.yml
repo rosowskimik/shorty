@@ -22,8 +22,6 @@ services:
       CLIENT_PUBLIC_URL: http://localhost
       CLIENT_GRPC_ENDPOINT: http://server:50001
       LEPTOS_SITE_ADDR: "[::]:80"
-    ports:
-      - 80:80
     depends_on:
       server:
         condition: service_started

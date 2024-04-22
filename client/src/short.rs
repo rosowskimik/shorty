@@ -15,7 +15,7 @@ pub mod ssr {
 
     use crate::{grpc::SlugMessage, state::ShortyClient};
 
-    #[instrument(level = "trace", skip_all, fields(slug = slug))]
+    #[instrument(level = "debug", skip_all, fields(slug = slug))]
     pub async fn short_url_handler(
         State(mut client): State<ShortyClient>,
         Path(slug): Path<String>,

@@ -8,6 +8,8 @@ pub mod fileserv;
 pub mod grpc {
     tonic::include_proto!("shorty");
 }
+#[cfg(feature = "ssr")]
+pub mod intercept;
 pub mod short;
 #[cfg(feature = "ssr")]
 pub mod state;
