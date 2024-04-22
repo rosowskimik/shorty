@@ -9,7 +9,7 @@ pub(crate) type RedisConn<'a> = PooledConnection<'a, RedisConnectionManager>;
 
 pub async fn init_db_pool(conn_str: impl AsRef<str>) -> eyre::Result<RedisPool> {
     let addr = conn_str.as_ref();
-    debug!(addr, "Connecting do database");
+    debug!(addr, "Connecting to database");
 
     let manager = RedisConnectionManager::new(addr)?;
     let pool = Pool::builder().build(manager).await?;

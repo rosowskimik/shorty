@@ -11,10 +11,7 @@ use url::Url;
 
 use crate::{
     db::{init_db_pool, RedisConn, RedisPool},
-    shorty::grpc::{
-        shorty_server::{Shorty, ShortyServer},
-        SlugMessage, UrlMessage,
-    },
+    shorty::grpc::{shorty_server::Shorty, SlugMessage, UrlMessage},
 };
 
 pub mod grpc {
@@ -45,10 +42,6 @@ impl AppShorty {
             .wrap_err("Failed to connect to database")?;
 
         Ok(Self { pool })
-    }
-
-    pub fn grpc_service(self) -> ShortyServer<Self> {
-        ShortyServer::new(self)
     }
 
     fn gen_slug() -> String {
