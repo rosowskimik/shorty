@@ -5,7 +5,7 @@ metadata:
   labels:
     app: server
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: server
@@ -32,7 +32,7 @@ spec:
               key: redis-url
         - name: SERVER_TOKEN
           valueFrom:
-            secretMapKeyRef:
+            secretKeyRef:
               name: server-secret
               key: server-token
 ---

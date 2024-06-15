@@ -5,7 +5,7 @@ metadata:
   labels:
     app: client
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: client
@@ -22,9 +22,15 @@ spec:
           name: client-port
         env:
         - name: LEPTOS_SITE_ADDR
-          value: "[::]:8080"
+          valueFrom:
+            configMapKeyRef:
+              name: client-config
+              key: client-address
         - name: CLIENT_PUBLIC_URL
-          value: http://192.168.49.2:30100
+          valueFrom:
+            configMapKeyRef:
+              name: client-config
+              key: client-public-url
         - name: CLIENT_GRPC_ENDPOINT
           valueFrom:
             configMapKeyRef:
@@ -32,7 +38,7 @@ spec:
               key: grpc-endpoint
         - name: CLIENT_GRPC_TOKEN
           valueFrom:
-            secretMapKeyRef:
+            secretKeyRef:
               name: server-secret
               key: server-token
 ---
@@ -41,7 +47,7 @@ kind: Service
 metadata:
   name: client-service
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: client
   ports:
