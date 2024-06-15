@@ -17,9 +17,26 @@ spec:
       containers:
       - name: redis
         image: eqalpha/keydb:x86_64_v6.3.4
+        args:
+          - /etc/redis/redis.conf
         ports:
         - containerPort: 6379
           name: redis-port
+        volumeMounts:
+        - name: redis-conf
+          mountPath: /etc/redis
+        - name: redis-data
+          mountPath: /data
+      volumes:
+      - name: redis-conf
+        configMap:
+          name: redis-config
+          items:
+            - key: redis.conf
+              path: redis.conf
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: redis-pvc
 ---
 apiVersion: v1
 kind: Service

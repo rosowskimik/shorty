@@ -4,3 +4,6 @@ metadata:
   name: redis-config
 data:
   redis-url: redis://redis-service
+  redis.conf: |
+    appendonly no
+    protected-mode no
