@@ -20,6 +20,11 @@ spec:
         ports:
         - containerPort: 8080
           name: client-port
+        resources:
+          limits:
+            cpu: 500m
+          requests:
+            cpu: 200m
         env:
         - name: LEPTOS_SITE_ADDR
           valueFrom:
@@ -47,7 +52,7 @@ kind: Service
 metadata:
   name: client-service
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     app: client
   ports:
@@ -55,4 +60,16 @@ spec:
       port: 8080
       targetPort: client-port
       nodePort: 30100
-
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: client-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: client
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 50

@@ -20,6 +20,11 @@ spec:
         ports:
         - containerPort: 50001
           name: server-port
+        resources:
+          limits:
+            cpu: 500m
+          requests:
+            cpu: 200m
         env:
         - name: SERVER_BIND_IP
           value: "::"
@@ -47,3 +52,16 @@ spec:
     - protocol: TCP
       port: 50001
       targetPort: server-port
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: server-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: server
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 50
