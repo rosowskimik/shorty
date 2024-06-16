@@ -4,4 +4,4 @@ metadata:
   name: client-config
 data:
   client-address: "[::]:8080"
-  client-public-url: http://shor.tt:30100
+  client-public-url: http://shor.tt:8080

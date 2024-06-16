@@ -52,14 +52,13 @@ kind: Service
 metadata:
   name: client-service
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: client
   ports:
     - protocol: TCP
       port: 8080
       targetPort: client-port
-      nodePort: 30100
 ---
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
