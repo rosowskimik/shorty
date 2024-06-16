@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-replica-deployment
+  labels:
+    app: redis-replica
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-replica
+  template:
+    metadata:
+      labels:
+        app: redis-replica
+    spec:
+      containers:
+      - name: redis-replica
+        image: eqalpha/keydb:x86_64_v6.3.4
+        args:
+          - /etc/redis/redis.conf
+        ports:
+        - containerPort: 6379
+          name: redis-port
+        resources:
+          limits:
+            cpu: 300m
+          requests:
+            cpu: 150m
+        volumeMounts:
+        - name: redis-conf
+          mountPath: /etc/redis
+      volumes:
+      - name: redis-conf
+        configMap:
+          name: redis-config
+          items:
+            - key: redis.conf.replica
+              path: redis.conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-replica-service
+spec:
+  selector:
+    app: redis-replica
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: redis-port
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: redis-replica-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: redis-replica-deployment
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70

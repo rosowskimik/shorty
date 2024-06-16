@@ -16,15 +16,15 @@ spec:
     spec:
       containers:
       - name: client
-        image: ghcr.io/rosowskimik/shorty-client:latest
+        image: ghcr.io/rosowskimik/shorty-client:v0.2.0
         ports:
         - containerPort: 8080
           name: client-port
         resources:
           limits:
-            cpu: 500m
+            cpu: 700m
           requests:
-            cpu: 200m
+            cpu: 450m
         env:
         - name: LEPTOS_SITE_ADDR
           valueFrom:

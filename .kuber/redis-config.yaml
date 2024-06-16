@@ -3,7 +3,12 @@ kind: ConfigMap
 metadata:
   name: redis-config
 data:
-  redis-url: redis://redis-service
+  redis-master-url: redis://redis-master-service
+  redis-replica-url: redis://redis-replica-service
   redis.conf: |
     appendonly no
     protected-mode no
+  redis.conf.replica: |
+    appendonly no
+    protected-mode no
+    slaveof redis-master-service.default.svc.cluster.local 6379

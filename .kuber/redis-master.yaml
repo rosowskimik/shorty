@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis-deployment
+  name: redis-master-deployment
   labels:
-    app: redis
+    app: redis-master
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: redis
+      app: redis-master
   template:
     metadata:
       labels:
-        app: redis
+        app: redis-master
     spec:
       containers:
-      - name: redis
+      - name: redis-master
         image: eqalpha/keydb:x86_64_v6.3.4
         args:
           - /etc/redis/redis.conf
@@ -41,10 +41,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis-service
+  name: redis-master-service
 spec:
   selector:
-    app: redis
+    app: redis-master
   ports:
     - protocol: TCP
       port: 6379
