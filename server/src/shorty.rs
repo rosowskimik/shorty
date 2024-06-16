@@ -10,7 +10,7 @@ use tracing::{debug, error, instrument, trace};
 use url::Url;
 
 use crate::{
-    db::{init_db_pool, RedisConn, RedisPool},
+    db::{DbController, RedisConn},
     shorty::grpc::{shorty_server::Shorty, SlugMessage, UrlMessage},
 };
 
@@ -19,7 +19,7 @@ pub mod grpc {
 }
 
 pub struct AppShorty {
-    pool: RedisPool,
+    db: DbController,
 }
 
 impl AppShorty {
@@ -34,14 +34,17 @@ impl AppShorty {
         });
     }
 
-    pub async fn try_new(db: impl AsRef<str>) -> eyre::Result<Self> {
+    pub async fn try_new(
+        master: impl AsRef<str>,
+        replica: Option<impl AsRef<str>>,
+    ) -> eyre::Result<Self> {
         debug!("Creating new service");
 
-        let pool = init_db_pool(db)
+        let db = DbController::init(master, replica)
             .await
             .wrap_err("Failed to connect to database")?;
 
-        Ok(Self { pool })
+        Ok(Self { db })
     }
 
     fn gen_slug() -> String {
@@ -51,9 +54,17 @@ impl AppShorty {
         })
     }
 
-    async fn get_conn(&self) -> Result<RedisConn, Status> {
-        trace!("Getting connection from pool");
-        self.pool.get().await.map_err(|e| {
+    async fn get_reader(&self) -> Result<RedisConn, Status> {
+        trace!("Getting read connection from pool");
+        self.db.reader().await.map_err(|e| {
+            error!(err = ?e, "Failed to get DB connection from pool");
+            Status::unavailable("Pool exhausted")
+        })
+    }
+
+    async fn get_writer(&self) -> Result<RedisConn, Status> {
+        trace!("Getting write connection from pool");
+        self.db.writer().await.map_err(|e| {
             error!(err = ?e, "Failed to get DB connection from pool");
             Status::unavailable("Pool exhausted")
         })
@@ -69,7 +80,7 @@ impl Shorty for AppShorty {
         trace!("Parsing arguments");
         Url::parse(&msg.url).map_err(|_| Status::invalid_argument("Malformed Url"))?;
 
-        let mut conn = self.get_conn().await?;
+        let mut conn = self.get_writer().await?;
 
         let slug = Self::gen_slug();
 
@@ -91,7 +102,7 @@ impl Shorty for AppShorty {
     ) -> Result<Response<UrlMessage>, Status> {
         let msg = req.into_inner();
 
-        let mut conn = self.get_conn().await?;
+        let mut conn = self.get_reader().await?;
 
         trace!(slug = msg.slug, "Looking up mapping");
         let val: Option<String> = conn.get(&msg.slug).await.map_err(|e| {
