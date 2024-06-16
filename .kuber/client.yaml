@@ -5,7 +5,7 @@ metadata:
   labels:
     app: client
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: client
@@ -16,15 +16,26 @@ spec:
     spec:
       containers:
       - name: client
-        image: ghcr.io/rosowskimik/shorty-client:latest
+        image: ghcr.io/rosowskimik/shorty-client:v0.2.0
         ports:
         - containerPort: 8080
           name: client-port
+        resources:
+          limits:
+            cpu: 700m
+          requests:
+            cpu: 450m
         env:
         - name: LEPTOS_SITE_ADDR
-          value: "[::]:8080"
+          valueFrom:
+            configMapKeyRef:
+              name: client-config
+              key: client-address
         - name: CLIENT_PUBLIC_URL
-          value: http://192.168.49.2:30100
+          valueFrom:
+            configMapKeyRef:
+              name: client-config
+              key: client-public-url
         - name: CLIENT_GRPC_ENDPOINT
           valueFrom:
             configMapKeyRef:
@@ -32,7 +43,7 @@ spec:
               key: grpc-endpoint
         - name: CLIENT_GRPC_TOKEN
           valueFrom:
-            secretMapKeyRef:
+            secretKeyRef:
               name: server-secret
               key: server-token
 ---
@@ -41,12 +52,23 @@ kind: Service
 metadata:
   name: client-service
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: client
   ports:
     - protocol: TCP
       port: 8080
       targetPort: client-port
-      nodePort: 30100
-
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: client-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: client-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 50

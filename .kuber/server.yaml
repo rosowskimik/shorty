@@ -5,7 +5,7 @@ metadata:
   labels:
     app: server
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: server
@@ -16,10 +16,15 @@ spec:
     spec:
       containers:
       - name: server
-        image: ghcr.io/rosowskimik/shorty-server:latest
+        image: ghcr.io/rosowskimik/shorty-server:v0.2.0
         ports:
         - containerPort: 50001
           name: server-port
+        resources:
+          limits:
+            cpu: 500m
+          requests:
+            cpu: 250m
         env:
         - name: SERVER_BIND_IP
           value: "::"
@@ -29,10 +34,15 @@ spec:
           valueFrom:
             configMapKeyRef:
               name: redis-config
-              key: redis-url
+              key: redis-master-url
+        - name: SERVER_DATABASE_REPLICA
+          valueFrom:
+            configMapKeyRef:
+              name: redis-config
+              key: redis-replica-url
         - name: SERVER_TOKEN
           valueFrom:
-            secretMapKeyRef:
+            secretKeyRef:
               name: server-secret
               key: server-token
 ---
@@ -47,3 +57,16 @@ spec:
     - protocol: TCP
       port: 50001
       targetPort: server-port
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: server-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: server-deployment
+  minReplicas: 1
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 75

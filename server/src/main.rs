@@ -21,7 +21,7 @@ pub(crate) struct Cli {
     #[arg(short, long, env = "SERVER_BIND_IP", default_value = "::1")]
     ip: IpAddr,
 
-    /// Database connection string
+    /// Database main connection string
     #[arg(
         short,
         long,
@@ -29,6 +29,10 @@ pub(crate) struct Cli {
         default_value = "redis://localhost"
     )]
     database: String,
+
+    /// Database readonly replica connection string
+    #[arg(short, long, env = "SERVER_DATABASE_REPLICA")]
+    database_ro: Option<String>,
 
     /// Server token
     #[arg(short, long, env = "SERVER_TOKEN")]
@@ -58,7 +62,7 @@ async fn main() -> eyre::Result<()> {
     setup_tracing(&args.log);
 
     info!("Setting up shorty service");
-    let shorty = AppShorty::try_new(args.database)
+    let shorty = AppShorty::try_new(args.database, args.database_ro)
         .await
         .wrap_err("Failed to initialize shorty service")?;
 
