@@ -85,7 +85,7 @@ jobs:
         with:
           context: .
           file: Dockerfile.client
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v') }}
           tags: ${{ steps.meta-client.outputs.tags }}
           labels: ${{ steps.meta-client.outputs.labels }}
           cache-from: type=gha
@@ -98,7 +98,7 @@ jobs:
         with:
           context: .
           file: Dockerfile.server
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v') }}
           tags: ${{ steps.meta-server.outputs.tags }}
           labels: ${{ steps.meta-server.outputs.labels }}
           cache-from: type=gha
@@ -106,7 +106,7 @@ jobs:
 
       -
         name: Sign published Docker images
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v') }}
         env:
           TAGS_CLIENT: ${{ steps.meta-client.outputs.tags }}
           DIGEST_CLIENT: ${{ steps.build-and-push-client.outputs.digest }}
