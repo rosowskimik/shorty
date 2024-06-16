@@ -63,5 +63,5 @@ spec:
     kind: Deployment
     name: server-deployment
   minReplicas: 1
-  maxReplicas: 5
+  maxReplicas: 3
   targetCPUUtilizationPercentage: 50
