@@ -1,10 +1,8 @@
 use std::time::Duration;
-
 use bb8::{Pool, PooledConnection, RunError};
 use bb8_redis::RedisConnectionManager;
-use eyre::bail;
-use redis::{AsyncCommands, RedisError};
-use tracing::{debug, info, warn};
+use redis::RedisError;
+use tracing::{info, warn};
 
 pub(crate) type RedisPool = Pool<RedisConnectionManager>;
 pub(crate) type RedisConn<'a> = PooledConnection<'a, RedisConnectionManager>;
@@ -27,6 +25,10 @@ impl DbController {
 
         #[cfg(debug_assertions)]
         {
+            use eyre::bail;
+            use redis::AsyncCommands;
+            use tracing::debug;
+
             debug!(addr, "Testing connection");
             {
                 let mut conn = master_pool.get().await?;
