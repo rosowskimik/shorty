@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: server
-        image: ghcr.io/rosowskimik/shorty-server:v0.2.0
+        image: ghcr.io/rosowskimik/shorty-server:v0.2.1
         ports:
         - containerPort: 50001
           name: server-port
