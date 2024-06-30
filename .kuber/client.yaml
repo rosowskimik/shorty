@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: client
-        image: ghcr.io/rosowskimik/shorty-client:v0.2.0
+        image: ghcr.io/rosowskimik/shorty-client:v0.2.1
         ports:
         - containerPort: 8080
           name: client-port

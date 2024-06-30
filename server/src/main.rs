@@ -31,7 +31,7 @@ pub(crate) struct Cli {
     database: String,
 
     /// Database readonly replica connection string
-    #[arg(short, long, env = "SERVER_DATABASE_REPLICA")]
+    #[arg(short = 'r', long, env = "SERVER_DATABASE_REPLICA")]
     database_ro: Option<String>,
 
     /// Server token
