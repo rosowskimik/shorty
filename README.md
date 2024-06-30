@@ -1,4 +1,4 @@
-# Leptos/GRPC Url Shortener
+# Leptos + gRPC Url Shortener
 
 Simple url shortener app written in Rust (Leptos app with hydration) + gRPC backend.
 Used for Kubernetes course.
@@ -12,6 +12,8 @@ Main access point for rest of the app.
 
 The gRPC `.proto` files are available in [proto directory](./proto).
 
+(more details about specific elements is contained within their respective directories)
+
 # Building
 
 ## Dependencies
@@ -19,7 +21,7 @@ To build both `client` and `server`, you will need:
 - Rust nightly
 - Protocol buffers compiler
 
-additionaly, to build the `client` app:
+additionally, to build the `client` app:
 - [`cargo-leptos`](https://github.com/leptos-rs/leptos)
 
 ## Client
